@@ -506,8 +506,11 @@ MonoBehaviour:
     positionX: 0
     positionY: 0
     depth: 10
+    currentDepth: 0
     direction: 0
     KeepDirection: 0.2
+    minDepthForBranch: 5
+    BranchChance: 0.2
   ActivateDebugTiles: 1
   DebugTile_Fill: {fileID: 3828544587947758032, guid: 57b52be6507c1e74e86120b2128b114e,
     type: 3}
