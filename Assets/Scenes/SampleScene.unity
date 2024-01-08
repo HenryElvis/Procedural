@@ -224,7 +224,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 4.5
+  orthographic size: 8
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -505,10 +505,13 @@ MonoBehaviour:
   m_agent:
     positionX: 0
     positionY: 0
-    depth: 5
+    depth: 10
     direction: 0
+    KeepDirection: 0.2
   ActivateDebugTiles: 1
-  DebugTile: {fileID: 3828544587947758032, guid: 57b52be6507c1e74e86120b2128b114e,
+  DebugTile_Fill: {fileID: 3828544587947758032, guid: 57b52be6507c1e74e86120b2128b114e,
+    type: 3}
+  DebugTile_Empty: {fileID: 4376204229051640556, guid: 4d4b0223d3d05ff40b1af9d96c530de9,
     type: 3}
 --- !u!4 &1285081079
 Transform:
@@ -519,7 +522,7 @@ Transform:
   m_GameObject: {fileID: 1285081077}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.5, y: 4.47, z: 0}
+  m_LocalPosition: {x: 5.5, y: 4.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

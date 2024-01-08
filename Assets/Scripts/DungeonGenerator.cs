@@ -1,6 +1,8 @@
 
 using JetBrains.Annotations;
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static Agent;
@@ -16,21 +18,20 @@ public class Agent
         Left,
         Right
     }
-    public Agent()
+    public void Init()
     {
-        positionX = 0;
-        positionY = 0;
-        m_currentDepth = 0;
+        positionX = depth;
+        positionY = depth;
         direction = AgentDirection.None;
     }
 
     public int positionX;
     public int positionY;
 
-    public int depth = 3;
-    private int m_currentDepth;
-    public int currentDepth { get { return m_currentDepth; } private set { } }
+    public int depth = 5;
+
     public AgentDirection direction;
+    [Range(0f,1f)] public float KeepDirection;
 }
 
 public class DungeonGenerator : MonoBehaviour
@@ -44,7 +45,9 @@ public class DungeonGenerator : MonoBehaviour
 
     [Header("debug")]
     public bool ActivateDebugTiles;
-    [SerializeField] GameObject DebugTile;
+    [SerializeField] GameObject DebugTile_Fill;
+    [SerializeField] GameObject DebugTile_Empty;
+    List<GameObject> DebugTiles = new List<GameObject>();
     Vector3 DebugOffset = Vector3.zero;
 
     public void Awake()
@@ -57,10 +60,22 @@ public class DungeonGenerator : MonoBehaviour
 
     private void Start()
     {
-        path = GeneratePath(ref m_agent);
+        m_agent.Init();
+        if (ActivateDebugTiles) DebugOffset = transform.position - new Vector3(m_agent.positionX, m_agent.positionY, 0);
+        SpawnBackgroundDebugTiles(m_agent);
+    }
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            DestroyDebugTiles();
+            m_agent.Init();
+            path = GeneratePath(m_agent);
+        }
+
     }
 
-    public bool[,] GeneratePath(ref Agent agent)
+    public bool[,] GeneratePath(Agent agent)
     {
         bool[,] returnedPath = new bool[(agent.depth * 2)+1 , (agent.depth * 2) + 1];
 
@@ -73,14 +88,11 @@ public class DungeonGenerator : MonoBehaviour
             }
         }
 
-        agent.positionX = agent.depth + 1;
-        agent.positionY = agent.depth + 1;
-
-        if (DebugTile) DebugOffset = transform.position - new Vector3(agent.positionX, agent.positionY, 0);
-
 
         returnedPath[agent.positionX, agent.positionY] = true;
 
+        if (ActivateDebugTiles)
+            spawnDebugTile(agent.positionX, agent.positionY);
 
 
         //Walk
@@ -110,6 +122,10 @@ public class DungeonGenerator : MonoBehaviour
 
         AgentDirection GetRandomDirection(AgentDirection currentDirection)
         {
+            float keepdir = UnityEngine.Random.Range(0f, 1f);
+            if (keepdir <= agent.KeepDirection && agent.direction != AgentDirection.None)
+                return currentDirection;
+
             AgentDirection returnDirection = AgentDirection.None;
             AgentDirection backwardDirection = AgentDirection.None;
 
@@ -141,7 +157,28 @@ public class DungeonGenerator : MonoBehaviour
 
         void spawnDebugTile(int posX, int posY)
         {
-            Instantiate(DebugTile, new Vector3(posX, posY, 0) + DebugOffset, Quaternion.identity);
+            DebugTiles.Add(Instantiate(DebugTile_Fill, new Vector3(posX, posY, 0) + DebugOffset, Quaternion.identity));
+        }
+    }
+    private void DestroyDebugTiles()
+    {
+        foreach (var tile in DebugTiles)
+            Destroy(tile);
+    }
+
+    private void SpawnBackgroundDebugTiles(Agent agent)
+    {
+        if (!ActivateDebugTiles)
+            return;
+
+        bool[,] returnedPath = new bool[(agent.depth * 2) + 1, (agent.depth * 2) + 1];
+
+        for (int i = 0; i < (agent.depth * 2) + 1; i++)
+        {
+            for (int j = 0; j < (agent.depth * 2) + 1; j++)
+            {
+                Instantiate(DebugTile_Empty, new Vector3(i, j, 0) + DebugOffset, Quaternion.identity);
+            }
         }
     }
 }
