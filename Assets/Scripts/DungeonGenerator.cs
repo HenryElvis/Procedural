@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using TMPro;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static Agent;
@@ -23,13 +24,14 @@ public class Agent
         positionX = depth;
         positionY = depth;
         direction = AgentDirection.None;
+        currentDepth = 0;
     }
 
     public int positionX;
     public int positionY;
 
     public int depth = 5;
-
+    public int currentDepth;
     public AgentDirection direction;
     [Range(0f,1f)] public float KeepDirection;
 }
@@ -106,15 +108,20 @@ public class DungeonGenerator : MonoBehaviour
                 case AgentDirection.Up: agent.positionY += 1; break;
                 case AgentDirection.Down: agent.positionY -= 1; break;
             }
-            
+
+            agent.currentDepth++;
+
             if (returnedPath[agent.positionX, agent.positionY] == true)
                 continue;
 
             
             returnedPath[agent.positionX, agent.positionY] = true;
+            
 
             if (ActivateDebugTiles)
                 spawnDebugTile(agent.positionX, agent.positionY);
+
+            
         }
 
         return returnedPath;
@@ -136,11 +143,23 @@ public class DungeonGenerator : MonoBehaviour
                 case AgentDirection.Right: backwardDirection = AgentDirection.Left; break;
             }
 
+            
+
             int randomDirection = UnityEngine.Random.Range(1, 5);
 
-            while(randomDirection == (int)backwardDirection)
+            int projectedPosX = 0;
+            int projectedPosY = 0;
+            
+            while (returnedPath[agent.positionX + projectedPosX, agent.positionY + projectedPosY] == true)
             {
                 randomDirection = UnityEngine.Random.Range(1, 5);
+                switch (randomDirection)
+                {
+                    case 1: projectedPosY = 1; break;
+                    case 2: projectedPosY = -1; break;
+                    case 3: projectedPosX = -1; break;
+                    case 4: projectedPosX = 1; break;
+                }
             }
 
             switch (randomDirection)
@@ -155,9 +174,13 @@ public class DungeonGenerator : MonoBehaviour
             return returnDirection;
         }
 
+        
+
         void spawnDebugTile(int posX, int posY)
         {
-            DebugTiles.Add(Instantiate(DebugTile_Fill, new Vector3(posX, posY, 0) + DebugOffset, Quaternion.identity));
+            GameObject Tile = Instantiate(DebugTile_Fill, new Vector3(posX, posY, 0) + DebugOffset, Quaternion.identity);
+            Tile.GetComponentInChildren<TextMeshProUGUI>().text = agent.currentDepth.ToString();
+            DebugTiles.Add(Tile);
         }
     }
     private void DestroyDebugTiles()
