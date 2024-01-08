@@ -62,16 +62,26 @@ public class DungeonGenerator : MonoBehaviour
 
     private void Start()
     {
+        //ON INITIALISER L'AGENT
         m_agent.Init();
-        if (ActivateDebugTiles) DebugOffset = transform.position - new Vector3(m_agent.positionX, m_agent.positionY, 0);
-        SpawnBackgroundDebugTiles(m_agent);
+
+        if (ActivateDebugTiles)
+        {
+            DebugOffset = transform.position - new Vector3(m_agent.positionX, m_agent.positionY, 0);
+            SpawnBackgroundDebugTiles(m_agent);
+        }
+
     }
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            //ON WIPE LES TILES DE DEBUGS SI IL Y EN A
             DestroyDebugTiles();
+
+            //ON INIT L'AGENT
             m_agent.Init();
+
             path = GeneratePath(m_agent);
         }
 
@@ -79,9 +89,10 @@ public class DungeonGenerator : MonoBehaviour
 
     public bool[,] GeneratePath(Agent agent)
     {
+        //INITIALISATION DU TABLEAU
         bool[,] returnedPath = new bool[(agent.depth * 2)+1 , (agent.depth * 2) + 1];
 
-        //Set Values to false
+        //ON MET TOUTES LES VALEURS A FALSE
         for(int i  = 0; i < (agent.depth * 2) + 1; i++)
         {
             for (int j = 0; j < (agent.depth * 2) + 1; j++)
@@ -90,17 +101,19 @@ public class DungeonGenerator : MonoBehaviour
             }
         }
 
-
+        //LA TILE DE DEPART ET MISE A TRUE
         returnedPath[agent.positionX, agent.positionY] = true;
 
         if (ActivateDebugTiles)
             spawnDebugTile(agent.positionX, agent.positionY);
 
 
-        //Walk
+        //GENERATION
         for (int i = 0; i < agent.depth; i++)
         {
+            //ON OBTIENT UNE DIRECTION VALIDE
             agent.direction = GetRandomDirection(agent.direction);
+
             switch(agent.direction)
             {
                 case AgentDirection.Left: agent.positionX -= 1; break;
@@ -109,15 +122,13 @@ public class DungeonGenerator : MonoBehaviour
                 case AgentDirection.Down: agent.positionY -= 1; break;
             }
 
+            //ON AUGMENTE LA DEPTH A LAQUELLE SE TROUVE L'AGENT
             agent.currentDepth++;
 
-            if (returnedPath[agent.positionX, agent.positionY] == true)
-                continue;
-
-            
+            //ON MET LA VALEUR CORRESPONDANTE DU TALBEAU A TRUE
             returnedPath[agent.positionX, agent.positionY] = true;
             
-
+            //ON FAIT SPAWNER UNE TILE SI LE MODE DEBUG EST ACTIVE
             if (ActivateDebugTiles)
                 spawnDebugTile(agent.positionX, agent.positionY);
 
@@ -129,27 +140,19 @@ public class DungeonGenerator : MonoBehaviour
 
         AgentDirection GetRandomDirection(AgentDirection currentDirection)
         {
+            //ON VERIFIE SI L'AGENT DOIT CONSERVER LA MEME DIRECTION
             float keepdir = UnityEngine.Random.Range(0f, 1f);
             if (keepdir <= agent.KeepDirection && agent.direction != AgentDirection.None)
                 return currentDirection;
 
             AgentDirection returnDirection = AgentDirection.None;
-            AgentDirection backwardDirection = AgentDirection.None;
 
-            switch(currentDirection){
-                case AgentDirection.Up: backwardDirection = AgentDirection.Down; break;
-                case AgentDirection.Down: backwardDirection = AgentDirection.Up; break;
-                case AgentDirection.Left: backwardDirection = AgentDirection.Right; break;
-                case AgentDirection.Right: backwardDirection = AgentDirection.Left; break;
-            }
-
-            
-
+            //ON GENERE UNE DIRECTION ALEATOIRE
             int randomDirection = UnityEngine.Random.Range(1, 5);
 
+            //ON RECOMMENCE LA RECHERCHE ALEATOIRE TANT QUE LA DIRECTION PROJETE N'EST PAS VALIDE
             int projectedPosX = 0;
             int projectedPosY = 0;
-            
             while (returnedPath[agent.positionX + projectedPosX, agent.positionY + projectedPosY] == true)
             {
                 randomDirection = UnityEngine.Random.Range(1, 5);
@@ -162,6 +165,7 @@ public class DungeonGenerator : MonoBehaviour
                 }
             }
 
+            //ON OBTIENT LA DIRECTION CORRESPONDANTE
             switch (randomDirection)
             {
                 case 1: returnDirection = AgentDirection.Up; break;
