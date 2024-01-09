@@ -220,6 +220,8 @@ public class DungeonGenerator : MonoBehaviour
             {
                 agent.positionX = Nodes[j].position.x;
                 agent.positionY = Nodes[j].position.y;
+                Connection NewConnection = new Connection(false);
+                Nodes[j].connections.Add(NewConnection);
 
                 int BranchSize = UnityEngine.Random.Range(1, agent.BranchMaxSize+1);
 
@@ -248,7 +250,6 @@ public class DungeonGenerator : MonoBehaviour
                     //ON MET LA VALEUR CORRESPONDANTE DU TALBEAU A TRUE
                     Node NewNode = new Node(new Vector2Int(agent.positionX, agent.positionY));
                     Nodes.Add(NewNode);
-                    Connection NewConnection = new Connection(false);
                     NewNode.connections.Add(NewConnection);
                     Nodes[Nodes.Count - 2].connections.Add(NewConnection);
                     Connections.Add(NewConnection);
