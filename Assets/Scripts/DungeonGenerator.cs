@@ -39,16 +39,12 @@ public class Agent
     public AgentDirection direction;
     [Range(0f,1f)] public float KeepDirection;
 
-    [Header("Locks")]
+    [Header("Locks (this is not used atm)")]
     [Range(1, 2)] public int MaxLocks;
 
 
-    [Header("not used atm")]
-    [Range(0, 15)] public int minDepthForBranch;
-    [Range(0f,1f)] public float BranchChance;
-    [Range(0, 3)] public int MaxBranchCount;
+    [Header("Branch parameters")]
     [Range(1, 3)] public int BranchMaxSize;
-    [HideInInspector]public int StarIndexForBranchCreation = 0;
 }
 
 [Serializable]
@@ -99,7 +95,11 @@ public class DungeonGenerator : MonoBehaviour
     [SerializeField] Agent m_agent;
 
     [SerializeField] List<Node> Nodes = new List<Node>();
+    public List<Node> GetNodes() { return Nodes; }
+
     [SerializeField] List<Connection> Connections = new List<Connection>();
+    public List<Connection> GetConnections() { return Connections; }
+
     [Header("debug")]
     public bool ActivateDebugTiles;
     [SerializeField] GameObject DebugTile_Fill;
