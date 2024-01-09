@@ -500,16 +500,12 @@ MonoBehaviour:
   m_agent:
     positionX: 0
     positionY: 0
-    depth: 10
+    depth: 15
     currentDepth: 0
     direction: 0
     KeepDirection: 0.8
     MaxLocks: 2
-    minDepthForBranch: 8
-    BranchChance: 0.2
-    MaxBranchCount: 0
     BranchMaxSize: 3
-    StarIndexForBranchCreation: 0
   Nodes: []
   Connections: []
   ActivateDebugTiles: 1

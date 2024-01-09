@@ -39,8 +39,8 @@ public class Agent
     public AgentDirection direction;
     [Range(0f,1f)] public float KeepDirection;
 
-    [Header("Locks (this is not used atm)")]
-    [Range(1, 2)] public int MaxLocks;
+    [Header("Locks)")]
+    [Range(1, 3)] public int MaxLocks;
 
 
     [Header("Branch parameters")]
@@ -205,11 +205,12 @@ public class DungeonGenerator : MonoBehaviour
 
 
         //ADD LOCKS
-        int randomConnectionOffset = UnityEngine.Random.Range(-1, 2);
-        Connections[(Connections.Count / 3) + randomConnectionOffset -1].locked = true;
 
-        randomConnectionOffset = UnityEngine.Random.Range(-2, 0);
-        Connections[Connections.Count + randomConnectionOffset -1].locked = true;
+        for(int i = 0; i < agent.MaxLocks; i++)
+        {
+            int randomConnectionOffset = UnityEngine.Random.Range(-3, 1);
+            Connections[(Connections.Count / (i+1)) + randomConnectionOffset - 1].locked = true;
+        }
 
         //ADD BRANCHS NEAR LOCKS
         //TODO
