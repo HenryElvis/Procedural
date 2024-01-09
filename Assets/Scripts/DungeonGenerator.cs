@@ -104,7 +104,9 @@ public class DungeonGenerator : MonoBehaviour
     public bool ActivateDebugTiles;
     [SerializeField] GameObject DebugTile_Fill;
     [SerializeField] GameObject DebugTile_Empty;
+    [SerializeField] GameObject ConnectionGO;
     List<GameObject> DebugTiles = new List<GameObject>();
+    List<GameObject> DebugConnections = new List<GameObject>();
     Vector3 DebugOffset = Vector3.zero;
     
 
@@ -140,7 +142,7 @@ public class DungeonGenerator : MonoBehaviour
     public void GenerateDungeon()
     {
         //ON WIPE LES TILES DE DEBUGS SI IL Y EN A
-        DestroyDebugTiles();
+        DestroyDebugTilesAndConnections();
 
         //ON INIT L'AGENT
         m_agent.Init();
@@ -166,7 +168,9 @@ public class DungeonGenerator : MonoBehaviour
             //ON OBTIENT UNE DIRECTION VALIDE
             agent.direction = GetRandomDirection(agent.direction,true);
 
-            if(agent.direction == AgentDirection.Impossible)
+            Vector3 oldPos = new Vector3(agent.positionX, agent.positionY, 0);
+
+            if (agent.direction == AgentDirection.Impossible)
             {
                 GenerateDungeon();
                 return;
@@ -179,6 +183,8 @@ public class DungeonGenerator : MonoBehaviour
                 case AgentDirection.Up: agent.positionY += 1; break;
                 case AgentDirection.Down: agent.positionY -= 1; break;
             }
+
+            Vector3 NewPos = new Vector3(agent.positionX, agent.positionY, 0);
 
             //ON AUGMENTE LA DEPTH A LAQUELLE SE TROUVE L'AGENT
             agent.currentDepth++;
@@ -194,7 +200,13 @@ public class DungeonGenerator : MonoBehaviour
 
             //ON FAIT SPAWNER UNE TILE SI LE MODE DEBUG EST ACTIVE
             if (ActivateDebugTiles)
+            {
                 spawnDebugTile(agent.positionX, agent.positionY, Color.white);
+
+                Vector3 ConnectionPos = (oldPos + NewPos) / 2;
+                spawnDebugConnection(ConnectionPos, Color.green);
+            }
+                
 
         }
         if (ActivateDebugTiles)
@@ -209,7 +221,9 @@ public class DungeonGenerator : MonoBehaviour
         for(int i = 0; i < agent.MaxLocks; i++)
         {
             int randomConnectionOffset = UnityEngine.Random.Range(-3, 1);
-            Connections[(Connections.Count / (i+1)) + randomConnectionOffset - 1].locked = true;
+            int index = (Connections.Count / (i + 1)) + randomConnectionOffset - 1;
+            Connections[index].locked = true;
+            DebugConnections[index].GetComponent<SpriteRenderer>().color = Color.red;
         }
 
         //ADD BRANCHS NEAR LOCKS
@@ -223,12 +237,16 @@ public class DungeonGenerator : MonoBehaviour
                 Connection NewConnection = new Connection(false);
                 Nodes[j].connections.Add(NewConnection);
 
+                
+
                 int BranchSize = UnityEngine.Random.Range(1, agent.BranchMaxSize+1);
 
                 for (int i = 0; i < BranchSize; i++)
                 {
                     //ON OBTIENT UNE DIRECTION VALIDE
                     agent.direction = GetRandomDirection(agent.direction,false);
+
+                    Vector3 oldPos = new Vector3(agent.positionX, agent.positionY, 0);
 
                     if (agent.direction == AgentDirection.Impossible)
                     {
@@ -244,6 +262,8 @@ public class DungeonGenerator : MonoBehaviour
                         case AgentDirection.Down: agent.positionY -= 1; break;
                     }
 
+                    
+
                     //ON AUGMENTE LA DEPTH A LAQUELLE SE TROUVE L'AGENT
                     agent.currentDepth++;
 
@@ -251,15 +271,31 @@ public class DungeonGenerator : MonoBehaviour
                     Node NewNode = new Node(new Vector2Int(agent.positionX, agent.positionY));
                     Nodes.Add(NewNode);
                     NewNode.connections.Add(NewConnection);
-                    Nodes[Nodes.Count - 2].connections.Add(NewConnection);
-                    Connections.Add(NewConnection);
+
+                    Vector3 NewPos = new Vector3(agent.positionX, agent.positionY,0);
+
+                    
+                    if (i != 0)
+                    {
+                        Nodes[Nodes.Count - 2].connections.Add(NewConnection);
+                        Connections.Add(NewConnection);
+                    }
+
 
                     //ON FAIT SPAWNER UNE TILE SI LE MODE DEBUG EST ACTIVE
                     if (ActivateDebugTiles)
-                        spawnDebugTile(agent.positionX, agent.positionY,Color.yellow);
+                    {
+                        spawnDebugTile(agent.positionX, agent.positionY, Color.yellow);
+
+                        Vector3 ConnectionPos = (oldPos + NewPos) /2;
+
+                        spawnDebugConnection(ConnectionPos, Color.green);
+                    }
+                        
                 }
             }
         }
+        //SPAWN CONNECTION DEBUG IF NECESSARYU
         return;
 
 
@@ -310,17 +346,6 @@ public class DungeonGenerator : MonoBehaviour
            
         }
 
-        void Branch()
-        {
-            //BRANCH
-            
-            int randTile = UnityEngine.Random.Range(0, Nodes.Count);
-            agent.positionX = Nodes[randTile].position.x;
-            agent.positionY = Nodes[randTile].position.y;
-            agent.direction = AgentDirection.None;
-            Debug.Log("branch triggered at depth "+ agent.currentDepth+" with root at " + randTile);
-        }
-
         void spawnDebugTile(int posX, int posY, Color color)
         {
             GameObject Tile = Instantiate(DebugTile_Fill, new Vector3(posX, posY, 0) + DebugOffset, Quaternion.identity);
@@ -328,15 +353,27 @@ public class DungeonGenerator : MonoBehaviour
             Tile.GetComponentInChildren<TextMeshProUGUI>().text = agent.currentDepth.ToString();
             DebugTiles.Add(Tile);
         }
+
+        void spawnDebugConnection(Vector3 position, Color color)
+        {
+            GameObject SpawnedConnection = Instantiate(ConnectionGO, position + DebugOffset, Quaternion.identity);
+            SpawnedConnection.GetComponent<SpriteRenderer>().color = color;
+            DebugConnections.Add(SpawnedConnection);
+        }
     }
 
     #region debug
-    private void DestroyDebugTiles()
+    private void DestroyDebugTilesAndConnections()
     {
         foreach (var tile in DebugTiles)
             Destroy(tile);
 
         DebugTiles.Clear();
+
+        foreach (var connection in DebugConnections)
+            Destroy(connection);
+
+        DebugConnections.Clear();
     }
 
     private void SpawnBackgroundDebugTiles(Agent agent)
