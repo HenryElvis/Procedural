@@ -190,12 +190,19 @@ public class DungeonGenerator : MonoBehaviour
             NewNode.connections.Add(NewConnection);
             Nodes[Nodes.Count-2].connections.Add(NewConnection);
             Connections.Add(NewConnection);
+            
 
             //ON FAIT SPAWNER UNE TILE SI LE MODE DEBUG EST ACTIVE
             if (ActivateDebugTiles)
                 spawnDebugTile(agent.positionX, agent.positionY, Color.white);
 
         }
+        if (ActivateDebugTiles)
+        {
+            DebugTiles.Last().GetComponent<SpriteRenderer>().color = Color.blue;
+            DebugTiles.First().GetComponent<SpriteRenderer>().color = Color.green;
+        }
+
 
         //ADD LOCKS
         int randomConnectionOffset = UnityEngine.Random.Range(-1, 2);
@@ -326,6 +333,8 @@ public class DungeonGenerator : MonoBehaviour
     {
         foreach (var tile in DebugTiles)
             Destroy(tile);
+
+        DebugTiles.Clear();
     }
 
     private void SpawnBackgroundDebugTiles(Agent agent)
