@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using TMPro;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.MemoryProfiler;
 using UnityEngine;
 using UnityEngine.XR;
 using static Agent;
@@ -19,43 +20,94 @@ public class Agent
         Up,
         Down,
         Left,
-        Right
+        Right,
+        Impossible
     }
     public void Init()
     {
         positionX = depth;
         positionY = depth;
         direction = AgentDirection.None;
-        currentDepth = 0;
+        currentDepth = 0; 
     }
 
     public int positionX;
     public int positionY;
 
-    [Range(0, 10)] public int depth;
+    [Range(0, 15)] public int depth;
     public int currentDepth;
     public AgentDirection direction;
     [Range(0f,1f)] public float KeepDirection;
-    [Range(0, 10)] public int minDepthForBranch;
+
+    [Header("Locks")]
+    [Range(1, 2)] public int MaxLocks;
+
+
+    [Header("not used atm")]
+    [Range(0, 15)] public int minDepthForBranch;
     [Range(0f,1f)] public float BranchChance;
+    [Range(0, 3)] public int MaxBranchCount;
+    [Range(1, 3)] public int BranchMaxSize;
+    [HideInInspector]public int StarIndexForBranchCreation = 0;
+}
+
+[Serializable]
+public class Connection
+{
+    public bool locked = false;
+    public Connection(bool locked)
+    {
+        this.locked = locked;
+    }
+}
+
+[Serializable]
+public class Node
+{
+    public enum NodeType
+    {
+        Start,
+        End,
+        Neutral,
+        Hidden
+    }
+    public enum Difficulty
+    {
+        Easy,
+        Normal,
+        Hard
+    }
+
+    public Vector2Int position;
+    public NodeType nodeType;
+    public Difficulty difficulty;
+
+    public Node(Vector2Int Position)
+    {
+        position = Position;
+        nodeType = NodeType.Neutral;
+        difficulty = Difficulty.Normal;
+    }
+
+    public List<Connection> connections = new List<Connection>();
 }
 
 public class DungeonGenerator : MonoBehaviour
 {
     public static DungeonGenerator instance;
-    [SerializeField] Room[] m_availableRooms;
 
     [SerializeField] Agent m_agent;
 
-    [SerializeField] public bool[,] path;
-
+    [SerializeField] List<Node> Nodes = new List<Node>();
+    [SerializeField] List<Connection> Connections = new List<Connection>();
     [Header("debug")]
     public bool ActivateDebugTiles;
     [SerializeField] GameObject DebugTile_Fill;
     [SerializeField] GameObject DebugTile_Empty;
     List<GameObject> DebugTiles = new List<GameObject>();
     Vector3 DebugOffset = Vector3.zero;
-    [SerializeField] Dictionary<Vector2Int,bool> Tiles = new Dictionary<Vector2Int,bool>();
+    
+
     public void Awake()
     {
         if (instance != null && instance != this)
@@ -80,47 +132,44 @@ public class DungeonGenerator : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            //ON WIPE LES TILES DE DEBUGS SI IL Y EN A
-            DestroyDebugTiles();
-
-            //ON INIT L'AGENT
-            m_agent.Init();
-            Tiles.Clear();
-            path = GeneratePath(m_agent);
+            GenerateDungeon();
         }
 
     }
 
-    public bool[,] GeneratePath(Agent agent)
+    public void GenerateDungeon()
     {
-        //INITIALISATION DU TABLEAU
-        bool[,] returnedPath = new bool[(agent.depth * 2)+1 , (agent.depth * 2) + 1];
+        //ON WIPE LES TILES DE DEBUGS SI IL Y EN A
+        DestroyDebugTiles();
 
-        //ON MET TOUTES LES VALEURS A FALSE
-        for (int i  = 0; i < (agent.depth * 2) + 1; i++)
-        {
-            for (int j = 0; j < (agent.depth * 2) + 1; j++)
-            {
-                Tiles.Add(new Vector2Int(i, j), false);
-            }
-        }
+        //ON INIT L'AGENT
+        m_agent.Init();
+        Nodes.Clear();
+        Connections.Clear();
+        GeneratePath(m_agent);
+    }
+
+    public void GeneratePath(Agent agent)
+    {
 
         //LA TILE DE DEPART ET MISE A TRUE
-        Tiles[new Vector2Int(agent.positionX, agent.positionY)] = true;
+        //Nodes[new Vector2Int(agent.positionX, agent.positionY)] = true;
+        Nodes.Add(new Node(new Vector2Int(agent.positionX, agent.positionY)));
 
         if (ActivateDebugTiles)
-            spawnDebugTile(agent.positionX, agent.positionY);
+            spawnDebugTile(agent.positionX, agent.positionY, Color.white);
 
 
         //GENERATION
         for (int i = 0; i < agent.depth; i++)
         {
             //ON OBTIENT UNE DIRECTION VALIDE
-            agent.direction = GetRandomDirection(agent.direction);
+            agent.direction = GetRandomDirection(agent.direction,true);
 
-            while (agent.direction == AgentDirection.None)
+            if(agent.direction == AgentDirection.Impossible)
             {
-                agent.direction = GetRandomDirection(agent.direction);
+                GenerateDungeon();
+                return;
             }
 
             switch (agent.direction)
@@ -135,63 +184,113 @@ public class DungeonGenerator : MonoBehaviour
             agent.currentDepth++;
 
             //ON MET LA VALEUR CORRESPONDANTE DU TALBEAU A TRUE
-            Tiles[new Vector2Int(agent.positionX, agent.positionY)] = true;
+            Node NewNode = new Node(new Vector2Int(agent.positionX, agent.positionY));
+            Nodes.Add(NewNode);
+            Connection NewConnection = new Connection(false);
+            NewNode.connections.Add(NewConnection);
+            Nodes[Nodes.Count-2].connections.Add(NewConnection);
+            Connections.Add(NewConnection);
 
             //ON FAIT SPAWNER UNE TILE SI LE MODE DEBUG EST ACTIVE
             if (ActivateDebugTiles)
-                spawnDebugTile(agent.positionX, agent.positionY);
+                spawnDebugTile(agent.positionX, agent.positionY, Color.white);
 
-            if(agent.minDepthForBranch <= agent.currentDepth)
-            {
-                float randForBranch = UnityEngine.Random.Range(0f, 1f);
-                if (randForBranch <= agent.BranchChance)
-                    Branch();
-            }
         }
 
-        return returnedPath;
+        //ADD LOCKS
+        int randomConnectionOffset = UnityEngine.Random.Range(-1, 2);
+        Connections[(Connections.Count / 3) + randomConnectionOffset -1].locked = true;
 
+        randomConnectionOffset = UnityEngine.Random.Range(-2, 0);
+        Connections[Connections.Count + randomConnectionOffset -1].locked = true;
 
-        AgentDirection GetRandomDirection(AgentDirection currentDirection)
+        //ADD BRANCHS NEAR LOCKS
+        //TODO
+        for(int j = 0;j < Connections.Count; j++)
         {
-            //ON VERIFIE SI L'AGENT DOIT CONSERVER LA MEME DIRECTION
-            float keepdir = UnityEngine.Random.Range(0f, 1f);
-            if (keepdir <= agent.KeepDirection && agent.direction != AgentDirection.None)
-                return currentDirection;
+            if (Connections[j].locked)
+            {
+                agent.positionX = Nodes[j].position.x;
+                agent.positionY = Nodes[j].position.y;
+
+                int BranchSize = UnityEngine.Random.Range(1, agent.BranchMaxSize+1);
+
+                for (int i = 0; i < BranchSize; i++)
+                {
+                    //ON OBTIENT UNE DIRECTION VALIDE
+                    agent.direction = GetRandomDirection(agent.direction,false);
+
+                    if (agent.direction == AgentDirection.Impossible)
+                    {
+                        GenerateDungeon();
+                        return;
+                    }
+
+                    switch (agent.direction)
+                    {
+                        case AgentDirection.Left: agent.positionX -= 1; break;
+                        case AgentDirection.Right: agent.positionX += 1; break;
+                        case AgentDirection.Up: agent.positionY += 1; break;
+                        case AgentDirection.Down: agent.positionY -= 1; break;
+                    }
+
+                    //ON AUGMENTE LA DEPTH A LAQUELLE SE TROUVE L'AGENT
+                    agent.currentDepth++;
+
+                    //ON MET LA VALEUR CORRESPONDANTE DU TALBEAU A TRUE
+                    Node NewNode = new Node(new Vector2Int(agent.positionX, agent.positionY));
+                    Nodes.Add(NewNode);
+                    Connection NewConnection = new Connection(false);
+                    NewNode.connections.Add(NewConnection);
+                    Nodes[Nodes.Count - 2].connections.Add(NewConnection);
+                    Connections.Add(NewConnection);
+
+                    //ON FAIT SPAWNER UNE TILE SI LE MODE DEBUG EST ACTIVE
+                    if (ActivateDebugTiles)
+                        spawnDebugTile(agent.positionX, agent.positionY,Color.yellow);
+                }
+            }
+        }
+        return;
 
 
+        AgentDirection GetRandomDirection(AgentDirection currentDirection, bool keepDirection)
+        {
+            if (keepDirection)
+            {
+                //ON VERIFIE SI L'AGENT DOIT CONSERVER LA MEME DIRECTION
+                float keepdir = UnityEngine.Random.Range(0f, 1f);
+                if (keepdir <= agent.KeepDirection && agent.direction != AgentDirection.None)
+                    return currentDirection;
+            }
             bool movePosible = false;
             List<AgentDirection> possibleMoves = new List<AgentDirection>();
 
-            if (Tiles[new Vector2Int(agent.positionX + 1, agent.positionY)] == false)
+            
+            if(!Nodes.Exists(x => x.position == new Vector2Int(agent.positionX + 1, agent.positionY)))
             {
                 movePosible = true;
                 possibleMoves.Add(AgentDirection.Right);
             }
-
-            if (Tiles[new Vector2Int(agent.positionX - 1, agent.positionY)] == false)
+            if(!Nodes.Exists(x => x.position == new Vector2Int(agent.positionX - 1, agent.positionY)))
             {
                 movePosible = true;
                 possibleMoves.Add(AgentDirection.Left);
             }
-
-            if (Tiles[new Vector2Int(agent.positionX, agent.positionY +1)] == false)
+            if(!Nodes.Exists(x => x.position == new Vector2Int(agent.positionX , agent.positionY+1)))
             {
                 movePosible = true;
                 possibleMoves.Add(AgentDirection.Up);
             }
-
-            if (Tiles[new Vector2Int(agent.positionX, agent.positionY -1)] == false)
+            if(!Nodes.Exists(x => x.position == new Vector2Int(agent.positionX, agent.positionY - 1)))
             {
                 movePosible = true;
                 possibleMoves.Add(AgentDirection.Down);
             }
-                
 
             if (!movePosible)
             {
-                Branch();
-                return agent.direction;
+                return AgentDirection.Impossible;
             }
 
             //ON GENERE UNE DIRECTION ALEATOIRE
@@ -206,27 +305,23 @@ public class DungeonGenerator : MonoBehaviour
         {
             //BRANCH
             
-            List<Vector2Int> activeTiles = new List<Vector2Int>();
-            foreach (KeyValuePair<Vector2Int, bool> entry in Tiles)
-            {
-                if (entry.Value == true)
-                    activeTiles.Add(entry.Key);
-            }
-
-            int randTile = UnityEngine.Random.Range(0, activeTiles.Count);
-            agent.positionX = activeTiles[randTile].x;
-            agent.positionY = activeTiles[randTile].y;
+            int randTile = UnityEngine.Random.Range(0, Nodes.Count);
+            agent.positionX = Nodes[randTile].position.x;
+            agent.positionY = Nodes[randTile].position.y;
             agent.direction = AgentDirection.None;
             Debug.Log("branch triggered at depth "+ agent.currentDepth+" with root at " + randTile);
         }
 
-        void spawnDebugTile(int posX, int posY)
+        void spawnDebugTile(int posX, int posY, Color color)
         {
             GameObject Tile = Instantiate(DebugTile_Fill, new Vector3(posX, posY, 0) + DebugOffset, Quaternion.identity);
+            Tile.GetComponent<SpriteRenderer>().color = color;
             Tile.GetComponentInChildren<TextMeshProUGUI>().text = agent.currentDepth.ToString();
             DebugTiles.Add(Tile);
         }
     }
+
+    #region debug
     private void DestroyDebugTiles()
     {
         foreach (var tile in DebugTiles)
@@ -248,4 +343,5 @@ public class DungeonGenerator : MonoBehaviour
             }
         }
     }
+    #endregion
 }
