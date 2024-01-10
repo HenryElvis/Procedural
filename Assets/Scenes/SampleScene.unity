@@ -513,6 +513,8 @@ MonoBehaviour:
     type: 3}
   DebugTile_Empty: {fileID: 4376204229051640556, guid: 4d4b0223d3d05ff40b1af9d96c530de9,
     type: 3}
+  ConnectionGO: {fileID: 4020666041419632866, guid: d2f4e0e58937c1d4c8aa9efc6929a340,
+    type: 3}
 --- !u!4 &1285081079
 Transform:
   m_ObjectHideFlags: 0
