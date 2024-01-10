@@ -10,6 +10,7 @@ using UnityEditor.MemoryProfiler;
 using UnityEngine;
 using UnityEngine.XR;
 using static Agent;
+using static Connection;
 
 [Serializable]
 public class Agent
@@ -50,7 +51,16 @@ public class Agent
 [Serializable]
 public class Connection
 {
+    public enum ConnectionDirection
+    {
+        North,
+        South,
+        East,
+        West
+    }
     public bool locked = false;
+    public ConnectionDirection direction;
+    public Vector2 position;
     public Connection(bool locked)
     {
         this.locked = locked;
@@ -86,6 +96,30 @@ public class Node
     }
 
     public List<Connection> connections = new List<Connection>();
+
+    public ConnectionDirection GetConnectionOrientation(Connection connection)
+    {
+        Vector2 dir = (connection.position - position).normalized;
+
+        if (dir.x > 0.2f)
+        {
+            return ConnectionDirection.East;
+        }
+        else if (dir.x < -0.2f)
+        {
+            return ConnectionDirection.West;
+        }
+        else if (dir.y > 0.2f)
+        {
+            return ConnectionDirection.North;
+        }
+        else if (dir.y < -0.2f)
+        {
+            return ConnectionDirection.South;
+        }
+
+        return ConnectionDirection.South;
+    }
 }
 
 public class DungeonGenerator : MonoBehaviour
@@ -188,6 +222,7 @@ public class DungeonGenerator : MonoBehaviour
 
             //ON AUGMENTE LA DEPTH A LAQUELLE SE TROUVE L'AGENT
             agent.currentDepth++;
+            Vector3 ConnectionPos = (oldPos + NewPos) / 2;
 
             //ON MET LA VALEUR CORRESPONDANTE DU TALBEAU A TRUE
             Node NewNode = new Node(new Vector2Int(agent.positionX, agent.positionY));
@@ -196,14 +231,15 @@ public class DungeonGenerator : MonoBehaviour
             NewNode.connections.Add(NewConnection);
             Nodes[Nodes.Count-2].connections.Add(NewConnection);
             Connections.Add(NewConnection);
-            
+            NewConnection.position = ConnectionPos;
+
 
             //ON FAIT SPAWNER UNE TILE SI LE MODE DEBUG EST ACTIVE
             if (ActivateDebugTiles)
             {
                 spawnDebugTile(agent.positionX, agent.positionY, Color.white);
 
-                Vector3 ConnectionPos = (oldPos + NewPos) / 2;
+                
                 spawnDebugConnection(ConnectionPos, Color.green);
             }
                 
@@ -266,15 +302,17 @@ public class DungeonGenerator : MonoBehaviour
 
                     //ON AUGMENTE LA DEPTH A LAQUELLE SE TROUVE L'AGENT
                     agent.currentDepth++;
+                    Vector3 NewPos = new Vector3(agent.positionX, agent.positionY, 0);
 
                     //ON MET LA VALEUR CORRESPONDANTE DU TALBEAU A TRUE
                     Node NewNode = new Node(new Vector2Int(agent.positionX, agent.positionY));
                     Nodes.Add(NewNode);
                     NewNode.connections.Add(NewConnection);
 
-                    Vector3 NewPos = new Vector3(agent.positionX, agent.positionY,0);
-
+                    Vector3 ConnectionPos = (oldPos + NewPos) / 2;
+                    NewConnection.position = ConnectionPos;
                     
+
                     if (i != 0)
                     {
                         Nodes[Nodes.Count - 2].connections.Add(NewConnection);
@@ -287,12 +325,16 @@ public class DungeonGenerator : MonoBehaviour
                     {
                         spawnDebugTile(agent.positionX, agent.positionY, Color.yellow);
 
-                        Vector3 ConnectionPos = (oldPos + NewPos) /2;
-
                         spawnDebugConnection(ConnectionPos, Color.green);
                     }
                         
                 }
+
+                foreach(Connection connection in Nodes[j].connections)
+                {
+                    Debug.Log(Nodes[j].GetConnectionOrientation(connection));
+                }
+
             }
         }
         //SPAWN CONNECTION DEBUG IF NECESSARYU
@@ -345,6 +387,8 @@ public class DungeonGenerator : MonoBehaviour
 
            
         }
+
+        
 
         void spawnDebugTile(int posX, int posY, Color color)
         {
