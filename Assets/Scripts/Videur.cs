@@ -19,11 +19,19 @@ public class Videur : MonoBehaviour
 
     [SerializeField] private GameObject throwingObject;
     [SerializeField] private Transform throwingTransform;
-    [SerializeField] private float delayBetweenTp = 3;
+    [SerializeField] private float rangeTp = 1.5f;
+    [SerializeField] private float delayBetweenTp = 1.5f;
     [SerializeField] private float delayBetweenShoot = 0.5f;
 
     private Coroutine coroutineState = null;
     private Coroutine coroutineDelayInRoom = null;
+
+    private SpriteRenderer spriteRenderer;
+
+    private void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -55,6 +63,7 @@ public class Videur : MonoBehaviour
         switch (state)
         {
             case State.Nothing:
+                Nothing();
                 break;
             case State.In:
                 In();
@@ -74,8 +83,16 @@ public class Videur : MonoBehaviour
         }
     }
 
+    private void Nothing()
+    {
+        spriteRenderer.enabled = false;
+    }
+
     public void In()
     {
+        spriteRenderer.enabled = true;
+        spriteRenderer.color = Color.yellow;
+
         switch (Random.Range(0, 3))
         {
             case 0:
@@ -116,6 +133,8 @@ public class Videur : MonoBehaviour
 
     private void Chase()
     {
+        spriteRenderer.color = Color.red;
+
         if (coroutineState == null)
             coroutineState = StartCoroutine(IChasePlayer());
 
@@ -137,11 +156,27 @@ public class Videur : MonoBehaviour
 
     private void TPAroundPlayer()
     {
+        spriteRenderer.color = Color.blue;
 
+        if (coroutineState == null)
+            coroutineState = StartCoroutine(ITPAroundPlayer());
+
+        IEnumerator ITPAroundPlayer()
+        {
+            while (state == State.TPAroundPlayer)
+            {
+                Vector3 targetForTp = FindPositionNearestToPlayer();
+
+                yield return new WaitForSeconds(delayBetweenTp);
+                transform.position = targetForTp;
+            }
+        }
     }
 
     private void ThrowObject()
     {
+        spriteRenderer.color = Color.magenta;
+
         if (coroutineState == null)
             coroutineState = StartCoroutine(IDelayShoot());
 
@@ -157,11 +192,39 @@ public class Videur : MonoBehaviour
 
     private void Out()
     {
+        spriteRenderer.color = Color.green;
+
+        if (coroutineState == null)
+            coroutineState = StartCoroutine(IEscape());
+
         OpenDoor();
 
         void OpenDoor()
         {
             Debug.Log("<color=green>Door Open </color>");
         }
+
+        IEnumerator IEscape()
+        {
+            while (state == State.Out)
+            {
+                if (Vector2.Distance(transform.position, FindNearestDoor()) > 0.5f)
+                    MoveTo(FindNearestDoor());
+                else
+                    SetState(State.Nothing);
+
+                yield return null;
+            }
+        }
+    }
+
+    private Vector3 FindNearestDoor()
+    {
+        return Vector3.zero;
+    }
+
+    private Vector3 FindPositionNearestToPlayer()
+    {
+        return Player.Instance.gameObject.transform.position + (Vector3)Random.insideUnitCircle * rangeTp;
     }
 }
