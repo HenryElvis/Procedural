@@ -21,6 +21,7 @@ public class Videur : MonoBehaviour
     [SerializeField] private GameObject throwingObject;
     [SerializeField] private Transform throwingTransform;
     [SerializeField] private float rangeTp = 1.5f;
+    [SerializeField] private float rangeDamage = 0.5f;
     [SerializeField] private float delayBetweenTp = 1.5f;
     [SerializeField] private float delayBetweenShoot = 0.5f;
 
@@ -123,6 +124,8 @@ public class Videur : MonoBehaviour
 
             yield return new WaitForSeconds(delayInRoom);
 
+            coroutineDelayInRoom = null;
+
             SetState(State.Out);
         }
 
@@ -144,6 +147,11 @@ public class Videur : MonoBehaviour
             while (state == State.Chase)
             {
                 MoveTo(Player.Instance.gameObject.transform.position);
+
+                if (Vector2.Distance(transform.position, Player.Instance.gameObject.transform.position) < rangeDamage)
+                {
+                    Player.Instance.ApplyHit(null);
+                }
 
                 yield return null;
             }
@@ -170,6 +178,11 @@ public class Videur : MonoBehaviour
 
                 yield return new WaitForSeconds(delayBetweenTp);
                 transform.position = targetForTp;
+
+                if (Vector2.Distance(transform.position, Player.Instance.gameObject.transform.position) < rangeDamage)
+                {
+                    Player.Instance.ApplyHit(null);
+                }
             }
         }
     }
