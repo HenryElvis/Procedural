@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2398356714842258218}
   - component: {fileID: -6891767555937203059}
   - component: {fileID: -8833187690056514539}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: SpikeUpAndDown
   m_TagString: Untagged
   m_Icon: {fileID: 0}
