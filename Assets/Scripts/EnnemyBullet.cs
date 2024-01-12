@@ -29,4 +29,14 @@ public class EnnemyBullet : MonoBehaviour
     {
         transform.position += (Vector3)m_direction * m_speed * 0.1f;
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (Player.Instance == null)
+            return;
+        if (collision.attachedRigidbody.gameObject != Player.Instance.gameObject)
+            return;
+
+        Player.Instance.ApplyHit(null);
+    }
 }
