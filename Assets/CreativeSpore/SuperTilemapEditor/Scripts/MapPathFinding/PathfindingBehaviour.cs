@@ -22,13 +22,12 @@ namespace CreativeSpore.SuperTilemapEditor
         }
         public eComputeMode ComputeMode = eComputeMode.Asynchronous;
         public int AsyncCoroutineIterations = 20;
-        public float MovingSpeed = 1f;
         [Tooltip("Distance to the next node to be considered reached and move to the next one")]
         public float ReachNodeDistance = 0.1f;
 
         public delegate void OnComputedPathDelegate(PathfindingBehaviour source);
         public OnComputedPathDelegate OnComputedPath;
-
+        public bool showGizmos = true;
 
         private bool m_isComputingPath = false;
         private LinkedList<IPathNode> m_pathNodes;
@@ -38,41 +37,48 @@ namespace CreativeSpore.SuperTilemapEditor
         void Start()
         {
             if (!PathFinding.TilemapGroup)
+                PathFinding.TilemapGroup = GetComponentInParent<TilemapGroup>();
+            if (!PathFinding.TilemapGroup)
                 PathFinding.TilemapGroup = FindObjectOfType<TilemapGroup>();
             if (PathFinding.CellSize == default(Vector2))
                 PathFinding.CellSize = PathFinding.TilemapGroup[0].CellSize;
         }
 
-        void Update()
+        public void ComputePath(Vector3 target)
         {
             // compute path to destination
-            if(Input.GetMouseButtonDown(0))
-            {
-                m_targetPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                switch(ComputeMode)
-                { 
-                    case eComputeMode.Asynchronous:
-                        StopAllCoroutines();
-                        StartCoroutine(UpdatePathAsync(transform.position, m_targetPosition, AsyncCoroutineIterations));
-                        break;
-                    case eComputeMode.Synchronous:
-                        UpdatePathSync(transform.position, m_targetPosition);
-                        break;
-                }
+            m_targetPosition = target;
+            switch(ComputeMode)
+            { 
+                case eComputeMode.Asynchronous:
+                    StopAllCoroutines();
+                    StartCoroutine(UpdatePathAsync(transform.position, m_targetPosition, AsyncCoroutineIterations));
+                    break;
+                case eComputeMode.Synchronous:
+                    UpdatePathSync(transform.position, m_targetPosition);
+                    break;
             }
+        }
 
+        public Vector3 GetNextPosition() {
+            return m_curNode.Next == null ? m_targetPosition : (Vector2) m_curNode.Value.Position ;
+        }
+
+        public Vector3 GetNextDirection() {
+            if (m_curNode == null)
+                return Vector3.zero;
+            return (GetNextPosition() - transform.position).normalized;
+        }
+
+        void Update()
+        {
             //Move to destination
-            if (m_curNode != null)
+            if (m_curNode == null)
+                return;
+            if (GetNextPosition().magnitude <= ReachNodeDistance) 
             {
-                Vector2 position = transform.position;
-                Vector2 dest = m_curNode.Next == null ? m_targetPosition : (Vector2)m_curNode.Value.Position;
-
-                Vector3 dir = dest - position;
-                if (dir.magnitude <= ReachNodeDistance)
-                    m_curNode = m_curNode.Next;
-                transform.position += dir.normalized * MovingSpeed * Time.deltaTime;
+                m_curNode = m_curNode.Next;            
             }
-
 #if UNITY_EDITOR
             DebugDrawPath();
 #endif
@@ -80,19 +86,19 @@ namespace CreativeSpore.SuperTilemapEditor
 
         void DebugDrawPath()
         {
-            if (!m_isComputingPath)
+            if (!showGizmos)
+                return;
+            if (m_isComputingPath)
+                return;
+            if (m_pathNodes == null || m_pathNodes.First == null)
+                return;
+            Color color = Color.red;
+            LinkedListNode<IPathNode> node = m_pathNodes.First;
+            while (node.Next != null)
             {
-                if (m_pathNodes != null && m_pathNodes.First != null)
-                {
-                    Color color = Color.red;
-                    LinkedListNode<IPathNode> node = m_pathNodes.First;
-                    while (node.Next != null)
-                    {
-                        Debug.DrawLine((node.Value as MapTileNode).Position, (node.Next.Value as MapTileNode).Position, color);
-                        node = node.Next;
-                        color = node.Next != null && node.Next.Next != null ? Color.white : Color.green;
-                    }
-                }
+                Debug.DrawLine((node.Value as MapTileNode).Position, (node.Next.Value as MapTileNode).Position, color);
+                node = node.Next;
+                color = node.Next != null && node.Next.Next != null ? Color.white : Color.green;
             }
         }
 
