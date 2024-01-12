@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum State
@@ -208,8 +209,8 @@ public class Videur : MonoBehaviour
         {
             while (state == State.Out)
             {
-                if (Vector2.Distance(transform.position, FindNearestDoor()) > 0.5f)
-                    MoveTo(FindNearestDoor());
+                if (Vector2.Distance(transform.position, FindDoor()) > 0.5f)
+                    MoveTo(FindDoor());
                 else
                     SetState(State.Nothing);
 
@@ -218,9 +219,14 @@ public class Videur : MonoBehaviour
         }
     }
 
-    private Vector3 FindNearestDoor()
+    private Vector3 FindDoor()
     {
-        return Vector3.zero;
+        GameObject door = GameObject.FindGameObjectWithTag("Door");
+
+        if (!door)
+            return Vector3.zero;
+
+        return door.transform.position;
     }
 
     private Vector3 FindPositionNearestToPlayer()
