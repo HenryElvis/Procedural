@@ -330,7 +330,7 @@ PrefabInstance:
     - target: {fileID: 4193226117228763186, guid: 6e989df079306a54198d548c7340b7bd,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.5
+      value: -6.96
       objectReference: {fileID: 0}
     - target: {fileID: 4193226117228763186, guid: 6e989df079306a54198d548c7340b7bd,
         type: 3}
@@ -381,6 +381,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: SpikeUpAndDown
+      objectReference: {fileID: 0}
+    - target: {fileID: 7249761477647285960, guid: 6e989df079306a54198d548c7340b7bd,
+        type: 3}
+      propertyPath: m_TagString
+      value: Door
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
