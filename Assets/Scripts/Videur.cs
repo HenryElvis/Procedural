@@ -54,12 +54,6 @@ public class Videur : MonoBehaviour
         UpdateState();
     }
 
-    private void Update()
-    {
-        //if (Player.Instance.gameObject)
-        //    transform.LookAt(Player.Instance.gameObject.transform);
-    }
-
     private void UpdateState()
     {
         switch (state)

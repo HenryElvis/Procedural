@@ -169,8 +169,15 @@ namespace CreativeSpore.SuperTilemapEditor
         {
             bool savedValue = Physics2D.queriesHitTriggers;
             Physics2D.queriesHitTriggers = false;
-            Vector3 dir = targetPosition - Position;            
-            bool raycastCheck = Physics2D.Raycast( Position, dir, dir.magnitude, m_owner.RaycastDetectionLayerMask);
+            Vector3 dir = targetPosition - Position;
+            ContactFilter2D filter = new ContactFilter2D();
+            filter.useTriggers = true;
+            filter.SetLayerMask(m_owner.RaycastDetectionLayerMask);
+            RaycastHit2D[] hits = new RaycastHit2D[1];
+
+            bool raycastCheck = Physics2D.Raycast(Position, dir, filter, hits, dir.magnitude) > 0;
+            filter.ClearDepth();
+
             Physics2D.queriesHitTriggers = savedValue;
             return raycastCheck;
         }
