@@ -10,12 +10,14 @@ public class Wave : MonoBehaviour
     [SerializeField, Range(0.1f, 2f)] float m_waveFrequency;
     float timer;
     Rigidbody2D m_playerRigidbody;
+    ParticleSystem m_particleSystem;
     
     private void Start()
     {
         m_circleCollider = GetComponent<CircleCollider2D>();
         m_circleCollider.radius = m_range;
         timer = m_waveFrequency;
+        m_particleSystem = GetComponentInChildren<ParticleSystem>();
     }
     private void Update()
     {
@@ -27,6 +29,9 @@ public class Wave : MonoBehaviour
 
             if(m_playerRigidbody != null)
                 ApplyForce();
+
+            SetUpParticles();
+            m_particleSystem.Play();
         }
     }
 
@@ -58,5 +63,11 @@ public class Wave : MonoBehaviour
     {
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position,m_range);
+    }
+
+    void SetUpParticles()
+    {
+        var SizeOverLifetime = m_particleSystem.sizeOverLifetime;
+        SizeOverLifetime.sizeMultiplier = m_range;
     }
 }
