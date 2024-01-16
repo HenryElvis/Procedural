@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9190105490844381804}
   - component: {fileID: 148731659266752888}
-  - component: {fileID: 4956708673079109793}
+  - component: {fileID: 3165330570672585248}
   m_Layer: 0
   m_Name: Videur
   m_TagString: Untagged
@@ -87,7 +87,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4956708673079109793
+--- !u!114 &3165330570672585248
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -96,18 +96,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 5016201395214189422}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c592d47da395fd2448d2935ac40faa45, type: 3}
+  m_Script: {fileID: 11500000, guid: 1bd76439e8d6d734fb86663608d6724f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  state: 0
-  delayInRoom: 5
-  speed: 5
+  videurState: 0
+  speed: 1
   throwingObject: {fileID: 8732434443645422589, guid: 3eccd22a9dc21c64dab00333bdb9b5a7,
     type: 3}
   throwingTransform: {fileID: 746940140042265850}
-  rangeTp: 1.5
-  delayBetweenTp: 3
+  delayStartChasing: 0.5
   delayBetweenShoot: 0.5
+  rangeDamage: 0.5
 --- !u!1 &6795365133935922977
 GameObject:
   m_ObjectHideFlags: 0
@@ -120,7 +119,7 @@ GameObject:
   m_Layer: 0
   m_Name: Gun
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1

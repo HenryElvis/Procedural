@@ -17,12 +17,11 @@ public class ThrowingObject : MonoBehaviour
     // Start is called before the first frame update
     private void OnEnable()
     {
-        direction = ((Vector3)direction - transform.position).normalized;
+        direction = (Player.Instance.gameObject.transform.position - transform.position).normalized;
 
         Color color = Random.ColorHSV(0.5f, 1);
         spriteRenderer.color = color;
 
-        direction = Player.Instance.gameObject.transform.position;
         Destroy(gameObject, delayBeforeDestroyingObject);
     }
 
