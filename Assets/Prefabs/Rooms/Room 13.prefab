@@ -190,7 +190,7 @@ GameObject:
   - component: {fileID: 5492188204159618958}
   - component: {fileID: 2046720661762492684}
   m_Layer: 0
-  m_Name: Room 12
+  m_Name: Room 13
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -295,7 +295,7 @@ GameObject:
   - component: {fileID: 4573521275618182789}
   - component: {fileID: 1488922155926077477}
   - component: {fileID: 6633198894567223869}
-  - component: {fileID: 134216172348910617}
+  - component: {fileID: 906103821827432472}
   m_Layer: 0
   m_Name: 0_0
   m_TagString: Untagged
@@ -706,7 +706,7 @@ EdgeCollider2D:
   m_AdjacentEndPoint: {x: 0, y: 0}
   m_UseAdjacentStartPoint: 0
   m_UseAdjacentEndPoint: 0
---- !u!68 &134216172348910617
+--- !u!68 &906103821827432472
 EdgeCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
