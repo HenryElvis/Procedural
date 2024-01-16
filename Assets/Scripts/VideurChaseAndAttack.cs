@@ -93,6 +93,10 @@ public class VideurChaseAndAttack : MonoBehaviour
         {
             while (videurState != VideurState.Die)
             {
+                Vector2 dir = transform.position - Player.Instance.transform.position;
+                float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg + 180;
+                transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
                 MoveToPlayer();
 
                 yield return null;
