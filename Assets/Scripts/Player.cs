@@ -253,7 +253,7 @@ public class Player : MonoBehaviour {
     /// <summary>
     /// Called when player takes a hit (ie from enemy hitbox or spikes).
     /// </summary>
-    public void ApplyHit(Attack attack)
+    public void ApplyHit(Attack attack = null)
     {
         if (Time.time - _lastHitTime < invincibilityDuration)
             return;
