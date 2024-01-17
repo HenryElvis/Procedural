@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CreativeSpore.SuperTilemapEditor;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -12,23 +13,23 @@ public class DungeonGeneratorV2 : MonoBehaviour
         public int currentDepth = 0;
         private Utils.ORIENTATION lastDirection = Utils.ORIENTATION.NONE;
 
-        public void RandomlyAdvanceEast()
+        public void RandomlyAdvance(Utils.ORIENTATION growthDirection)
         {
             var nextMove = Random.Range(0, 3);
             switch (nextMove)
             {
                 case 0:
-                    if(lastDirection is Utils.ORIENTATION.NONE or Utils.ORIENTATION.EAST)
-                        MoveDirection(Utils.ORIENTATION.NORTH);
+                    if(lastDirection == Utils.ORIENTATION.NONE || lastDirection == growthDirection)
+                        MoveDirection(Utils.AngleToOrientation(90, growthDirection));
                     else MoveDirection(lastDirection);
                     break;
                 case 1:
-                    if(lastDirection is Utils.ORIENTATION.NONE or Utils.ORIENTATION.EAST)
-                        MoveDirection(Utils.ORIENTATION.SOUTH);
-                    else MoveDirection(Utils.ORIENTATION.EAST);
+                    if(lastDirection == Utils.ORIENTATION.NONE || lastDirection == growthDirection)
+                        MoveDirection(Utils.AngleToOrientation(-90, growthDirection));
+                    else MoveDirection(growthDirection);
                     break;
                 default:
-                    MoveDirection(Utils.ORIENTATION.EAST);
+                    MoveDirection(growthDirection);
                     break;
             }
         }
@@ -71,8 +72,9 @@ public class DungeonGeneratorV2 : MonoBehaviour
         }
     }
     
-    [Range(0, 20)] public int depth = 10;
-    [Range(0, 10)] public int maxBranches = 3;
+    [Range(0, 30)] public int depth = 10;
+    [Range(0, 20)] public int maxBranches = 3;
+    [Range(0, 20)] public int maxBranchDepth = 5;
     public GameObject roomPrefab;
     public GameObject doorPrefab;
 
@@ -111,7 +113,7 @@ public class DungeonGeneratorV2 : MonoBehaviour
 
                 _graphNodes.Add(newNode);
 
-                _agent.RandomlyAdvanceEast();
+                _agent.RandomlyAdvance(Utils.ORIENTATION.EAST);
                 _agent.currentDepth++;
             }
         }
@@ -120,20 +122,51 @@ public class DungeonGeneratorV2 : MonoBehaviour
         {
             if (maxBranches <= 0) return;
 
-            var mainPath = _graphNodes;
             var currentBranches = 0;
 
             for (int i = 0; i < depth; i++)
             {
+                if(currentBranches >= maxBranches) break;
+
                 _agent.currentPosition = _graphNodes[i].position;
                 _agent.currentDepth = i;
 
-                var branchHere = Random.Range(0, depth);
-                if(branchHere < depth / 2) continue;
+                var doBranchHere = Random.Range(0, depth);
+                if(doBranchHere < depth / 2) continue;
 
-                
+                BranchHere(i);
 
                 currentBranches++;
+            }
+        }
+
+        void BranchHere(int nodeIndex)
+        {
+            var node = _graphNodes[nodeIndex];
+
+            var emptyOrientation = FindEmptyAdjacent(node);
+            if(emptyOrientation == Utils.ORIENTATION.NONE) return;
+
+            _agent.currentPosition = node.position + Utils.OrientationToDir(emptyOrientation);
+
+            var newNode = new GraphNode();
+            newNode.position = _agent.currentPosition;
+            _graphNodes.Add(newNode);
+
+            var depth = 0;
+            while (true)
+            {
+                if(depth >= maxBranchDepth) break;
+
+                _agent.RandomlyAdvance(emptyOrientation);
+                var branchNode = FindNodeAtCoords(_agent.currentPosition);
+                if(branchNode != null) break;
+
+                var newBranchNode = new GraphNode();
+                newBranchNode.position = _agent.currentPosition;
+                _graphNodes.Add(newBranchNode);
+
+                depth++;
             }
         }
 
@@ -210,5 +243,23 @@ public class DungeonGeneratorV2 : MonoBehaviour
     {
         var node = _graphNodes.Find(x => x.position.x == vector.x && x.position.y == vector.y);
         return node;
+    }
+
+
+    private Utils.ORIENTATION FindEmptyAdjacent(GraphNode node)
+    {
+        var north = _graphNodes.Find(x => x.position.x == node.position.x && x.position.y == node.position.y + 1);
+        if (north == null) return Utils.ORIENTATION.NORTH;
+
+        var east = _graphNodes.Find(x => x.position.x == node.position.x + 1 && x.position.y == node.position.y);
+        if (east == null) return Utils.ORIENTATION.EAST;
+
+        var south = _graphNodes.Find(x => x.position.x == node.position.x && x.position.y == node.position.y - 1);
+        if (south == null) return Utils.ORIENTATION.SOUTH;
+
+        var west = _graphNodes.Find(x => x.position.x == node.position.x - 1 && x.position.y == node.position.y);
+        if (west == null) return Utils.ORIENTATION.WEST;
+
+        return Utils.ORIENTATION.NONE;
     }
 }
