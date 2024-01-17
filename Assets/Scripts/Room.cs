@@ -1,8 +1,10 @@
 ﻿using CreativeSpore.SuperTilemapEditor;
 using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// Represents a single room in your dungeon
@@ -10,6 +12,14 @@ using UnityEngine;
 /// </summary>
 public class Room : MonoBehaviour {
 
+    public enum Difficulty
+    {
+        EASY,
+        MEDIUM,
+        HARD
+    }
+
+    public Difficulty diffuculty = Difficulty.EASY;
     public bool isStartRoom = false;
 
     // Position of the room in index coordinates. Coordinates {0,0} are the coordinates of the central room. Room {1,0} is on the right side of room {0,0}.
@@ -17,8 +27,14 @@ public class Room : MonoBehaviour {
     // Size of the room in index coordinates. By default : {1,1}.
     public Vector2Int size = Vector2Int.one;
 
+
+    private Room lastRoom;
+    private Utils.ORIENTATION lastRoomOrientation;
+
+
     private TilemapGroup _tilemapGroup;
 	private List<Door> doors = null;
+
     private bool _isInitialized = false;
     public static List<Room> allRooms { get; private set; } = new List<Room>();
 
@@ -158,14 +174,21 @@ public class Room : MonoBehaviour {
 
 	void Start()
 	{
-		RefreshDoors();
+		// RefreshDoors();
+
         if (isStartRoom)
         {
             Player.Instance.EnterRoom(this);
         }
     }
 
-	private void RefreshDoors()
+    public void SetLastRoom(Room room)
+    {
+        lastRoom = room;
+        DefineLastRoomOrientation();
+    }
+
+	public void RefreshDoors()
 	{
 		if(doors == null) {
             doors = new List<Door>();
@@ -173,6 +196,18 @@ public class Room : MonoBehaviour {
 			doors.Clear();
         }
         GetComponentsInChildren<Door>(true, doors);
+
+        var keys = GetComponentsInChildren<KeyCollectible>(true).Length;
+        if(keys == 0) return;
+
+        for (int i = 0; i < keys; i++)
+        {
+            var openDoors = doors.FindAll(x => x.State == Door.STATE.OPEN && lastRoomOrientation != x.Orientation);
+            if(openDoors.Count == 0) break;
+
+            var random = openDoors[Random.Range(0, openDoors.Count)];
+            random.SetState(Door.STATE.CLOSED);
+        }
     }
 
     /// <summary>
@@ -208,6 +243,43 @@ public class Room : MonoBehaviour {
 		}
 		_isInitialized = true;
 	}
+
+    private void DefineLastRoomOrientation()
+    {
+        if (lastRoom == null)
+        {
+            lastRoomOrientation = Utils.ORIENTATION.NONE;
+            return;
+        }
+
+        var north = GetAdjacentRoom(Utils.ORIENTATION.NORTH, transform.position);
+        if (north == lastRoom)
+        {
+            lastRoomOrientation = Utils.ORIENTATION.NORTH;
+            return;
+        }
+
+        var east = GetAdjacentRoom(Utils.ORIENTATION.EAST, transform.position);
+        if (east == lastRoom)
+        {
+            lastRoomOrientation = Utils.ORIENTATION.EAST;
+            return;
+        }
+
+        var south = GetAdjacentRoom(Utils.ORIENTATION.SOUTH, transform.position);
+        if (south == lastRoom)
+        {
+            lastRoomOrientation = Utils.ORIENTATION.SOUTH;
+            return;
+        }
+
+        var west = GetAdjacentRoom(Utils.ORIENTATION.WEST, transform.position);
+        if (west == lastRoom)
+        {
+            lastRoomOrientation = Utils.ORIENTATION.WEST;
+            return;
+        }
+    }
 
 	private void OnDestroy()
 	{

@@ -37,24 +37,20 @@ public class Door : MonoBehaviour {
 
 	private Room _room = null;
 
-	public void Awake()
-	{
-		_room = GetComponentInParent<Room>();
+	public void Start()
+    {
+        _room = GetComponentInParent<Room>();
         Bounds roomBounds = _room.GetLocalBounds();
-        float ratio = roomBounds.size.x / roomBounds.size.y;
-        Vector2 dir = transform.position - (_room.transform.position + roomBounds.center);
-        if (Mathf.Abs(dir.x) > Mathf.Abs(dir.y) * ratio)
+        Vector2 localPos = transform.localPosition;
+
+        if (localPos.x < roomBounds.center.x + .1f && localPos.x > roomBounds.center.x - .1f)
         {
-            _orientation = dir.x > 0 ? Utils.ORIENTATION.EAST : Utils.ORIENTATION.WEST;
+            _orientation = localPos.y > roomBounds.center.y ? Utils.ORIENTATION.NORTH : Utils.ORIENTATION.SOUTH;
         }
         else
         {
-            _orientation = dir.y > 0 ? Utils.ORIENTATION.NORTH : Utils.ORIENTATION.SOUTH;
+            _orientation = localPos.x > roomBounds.center.x ? Utils.ORIENTATION.EAST : Utils.ORIENTATION.WEST;
         }
-    }
-
-	public void Start()
-    {
 
         transform.rotation = Quaternion.Euler(0, 0, -Utils.OrientationToAngle(_orientation));
 		if(closedGo.gameObject.activeSelf)

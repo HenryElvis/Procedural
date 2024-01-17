@@ -503,8 +503,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7b92ee6ad3d40d58573e5819cf87dc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  depth: 20
-  roomPrefab: {fileID: 4167186206395494075, guid: 5f2601cc89bdd9545968470c924012dd,
+  depth: 18
+  maxBranches: 3
+  maxBranchDepth: 5
+  roomPrefabs:
+  - {fileID: 820465165552439272, guid: 1c6bea97f2cbfc84fb9611d7e1e1d9ab, type: 3}
+  - {fileID: 2786395878849647928, guid: 1b3c041700faf1248ae17aeffe2c297e, type: 3}
+  - {fileID: 2786395878849647928, guid: e5b4cf1a062c31743a20aa8bffb0c3d8, type: 3}
+  - {fileID: 2786395878849647928, guid: 81bb5610091753946b57a3943acf8eb4, type: 3}
+  - {fileID: 2786395878849647928, guid: 304463e856223d44d82b397a724a839d, type: 3}
+  - {fileID: 2786395878849647928, guid: 6fdafe22cf0651c4384429800460b6d5, type: 3}
+  - {fileID: 2786395878849647928, guid: 05fb6b14fd9764f478ada36e950ee2cd, type: 3}
+  - {fileID: 2786395878849647928, guid: 22b6e7796269d5f448320ddaa870c664, type: 3}
+  - {fileID: 2786395878849647928, guid: c2049409b091b33439f229896106310e, type: 3}
+  - {fileID: 2786395878849647928, guid: 52304476451effa448df4a59415f87e9, type: 3}
+  - {fileID: 2786395878849647928, guid: 746e3a0b742e5e74b910a5b0c36a1810, type: 3}
+  - {fileID: 2786395878849647928, guid: d5d9f9c3e5368164b9109d7d212353d4, type: 3}
+  - {fileID: 2786395878849647928, guid: 1973fcee66af7cd4091ecc84028d788a, type: 3}
+  - {fileID: 2786395878849647928, guid: 82af988cec383de40bf8d3b2d1ab7d3d, type: 3}
+  - {fileID: 2786395878849647928, guid: 4fe46153de8e0d042871bbded1095c3f, type: 3}
+  stairsRoom: {fileID: 2786395878849647928, guid: cae31292626a5c14da78b39c4082ed8a,
     type: 3}
   doorPrefab: {fileID: 6144991255345215292, guid: e220ae9ccd75bd04fa295d970d7c2202,
     type: 3}
@@ -910,7 +928,7 @@ PrefabInstance:
     - target: {fileID: 3061304262239656687, guid: 3e99f044c283cd440bd8fee09c5090db,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.5
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 3061304262239656687, guid: 3e99f044c283cd440bd8fee09c5090db,
         type: 3}

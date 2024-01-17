@@ -58,48 +58,85 @@ public class DungeonGeneratorV2 : MonoBehaviour
         public void Init()
         {
             currentPosition = Vector2Int.zero;
+            currentDepth = 0;
         }
     }
 
     private class GraphNode
     {
+        public GraphNode previousNode;
         public Vector2Int position;
         public Room room;
+        public bool isStairsRoom = false;
 
         public Vector3 ToWorldPosition()
         {
             return new Vector3(position.x * 11, position.y * 9);
         }
     }
-    
-    [Range(0, 30)] public int depth = 10;
-    [Range(0, 20)] public int maxBranches = 3;
-    [Range(0, 20)] public int maxBranchDepth = 5;
-    public GameObject roomPrefab;
-    public GameObject doorPrefab;
+    public static DungeonGeneratorV2 Instance = null;
 
+    [Range(0, 300)] public int depth = 10;
+    [Range(0, 200)] public int maxBranches = 3;
+    [Range(0, 200)] public int maxBranchDepth = 5;
+    public List<GameObject> roomPrefabs;
+    public GameObject stairsRoom;
+    public GameObject doorPrefab;
 
     private Agent _agent;
     private List<GraphNode> _graphNodes = new();
-    
-    
+    private Room.Difficulty _currentDifficulty = Room.Difficulty.EASY;
+
+    private GraphNode _lastNode = null;
+    private bool _definedStairsRoom = false;
+
+    private Vector3 _startPoint;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     private void Start()
     {
         Player.Instance.gameObject.SetActive(false);
 
+        _startPoint = Player.Instance.transform.position;
         _agent = new Agent();
+        StartGeneration();
+    }
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Space)) IncrementDifficulty();
+    }
+
+    public void IncrementDifficulty()
+    {
+        switch (_currentDifficulty)
+        {
+            case Room.Difficulty.EASY: _currentDifficulty = Room.Difficulty.MEDIUM; break;
+            case Room.Difficulty.MEDIUM: _currentDifficulty = Room.Difficulty.HARD; break;
+        }
+
         StartGeneration();
     }
 
     private void StartGeneration()
     {
         Player.Instance.gameObject.SetActive(false);
+        Player.Instance.gameObject.transform.position = _startPoint;
+
+        ClearGraph();
+        _definedStairsRoom = false;
 
         _agent.Init();
         GenerateGraph();
         SpawnGraph();
 
         Player.Instance.gameObject.SetActive(true);
+
+        Debug.Log(_graphNodes.Count + " Rooms");
     }
 
     private void GenerateGraph()
@@ -110,11 +147,12 @@ public class DungeonGeneratorV2 : MonoBehaviour
             {
                 var newNode = new GraphNode();
                 newNode.position = _agent.currentPosition;
-
+                newNode.previousNode = _lastNode;
                 _graphNodes.Add(newNode);
 
                 _agent.RandomlyAdvance(Utils.ORIENTATION.EAST);
                 _agent.currentDepth++;
+                _lastNode = newNode;
             }
         }
 
@@ -134,6 +172,7 @@ public class DungeonGeneratorV2 : MonoBehaviour
                 var doBranchHere = Random.Range(0, depth);
                 if(doBranchHere < depth / 2) continue;
 
+                _lastNode = _graphNodes[i];
                 BranchHere(i);
 
                 currentBranches++;
@@ -151,7 +190,9 @@ public class DungeonGeneratorV2 : MonoBehaviour
 
             var newNode = new GraphNode();
             newNode.position = _agent.currentPosition;
+            newNode.previousNode = _lastNode;
             _graphNodes.Add(newNode);
+            _lastNode = newNode;
 
             var depth = 0;
             while (true)
@@ -164,14 +205,32 @@ public class DungeonGeneratorV2 : MonoBehaviour
 
                 var newBranchNode = new GraphNode();
                 newBranchNode.position = _agent.currentPosition;
+                newBranchNode.previousNode = _lastNode;
                 _graphNodes.Add(newBranchNode);
+                _lastNode = newBranchNode;
 
                 depth++;
             }
         }
 
+        void DefineStairsRoom()
+        {
+            _agent.Init();
+            var random = Random.Range(0f, 1f);
+            for (var i = 0; i < _graphNodes.Count; i++)
+            {
+                if (random > (float) i / _graphNodes.Count)
+                    continue;
+
+                _graphNodes[i].isStairsRoom = true;
+                return;
+            }
+        }
+
         GenerateMainPath();
         GenerateBranches();
+
+        DefineStairsRoom();
     }
 
     private void SpawnGraph()
@@ -187,12 +246,35 @@ public class DungeonGeneratorV2 : MonoBehaviour
         }
     }
 
+    private void ClearGraph()
+    {
+        if(_graphNodes.Count == 0) return;
+
+        foreach (var graphNode in _graphNodes)
+        {
+            Destroy(graphNode.room.gameObject);
+        }
+
+        _graphNodes.Clear();
+    }
+
     private void SpawnRoom(GraphNode node, bool isStart = false)
     {
+        var goFilteredByDifficulty = roomPrefabs.FindAll(x => x.GetComponent<Room>().diffuculty == _currentDifficulty);
+        if (goFilteredByDifficulty.Count == 0)
+        {
+            Debug.Log("No room prefab found for difficulty " + _currentDifficulty);
+            return;
+        }
+
+        var roomPrefab = node.isStairsRoom ? stairsRoom : goFilteredByDifficulty[Random.Range(0, goFilteredByDifficulty.Count)];
+
         var newGo = Instantiate(roomPrefab, node.ToWorldPosition(), Quaternion.identity);
         node.room = newGo.GetComponent<Room>();
         node.room.position = node.position;
         node.room.isStartRoom = isStart;
+
+        node.room.SetLastRoom(node.previousNode?.room);
     }
 
     private void SpawnDoors(GraphNode node)
@@ -236,6 +318,8 @@ public class DungeonGeneratorV2 : MonoBehaviour
         }
 
         tilemap.UpdateMesh();
+
+        node.room.RefreshDoors();
     }
 
     [CanBeNull]
