@@ -52,6 +52,7 @@ public class Enemy : MonoBehaviour
     private List<SpriteRenderer> _spriteRenderers = new List<SpriteRenderer>();
     private Coroutine _blinkCoroutine = null;
 
+    [SerializeField] private VideurChaseAndAttack videur;
 
     // Movement attributes
     [Header("Movement")]
@@ -264,6 +265,11 @@ public class Enemy : MonoBehaviour
         life -= (attack != null ? attack.damages : 1);
         if (life <= 0)
         {
+            if (!videur)
+                videur = GameObject.FindGameObjectWithTag("Boss").GetComponent<VideurChaseAndAttack>();
+
+            videur.ReduceHealth();
+
             SetState(STATE.DEAD);
         }
         else

@@ -24,6 +24,11 @@ public class VideurChaseAndAttack : MonoBehaviour
     [SerializeField] private float delayBetweenShoot = 0.5f;
     [SerializeField] private float rangeDamage = 0.5f;
 
+    [SerializeField] private float healthPoint = 1500;
+    [SerializeField] private float AdditionnalHealthPerEnemies = 10;
+
+    private float healthRemoveWhenKillIA = 0;
+
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -66,6 +71,8 @@ public class VideurChaseAndAttack : MonoBehaviour
         spriteRenderer.color = Color.blue;
 
         coroutineState = StartCoroutine(IEnterRoom());
+
+        SetHealth();
 
         IEnumerator IEnterRoom()
         {
@@ -126,6 +133,28 @@ public class VideurChaseAndAttack : MonoBehaviour
     private void Die()
     {
         spriteRenderer.color = Color.gray;
-        Destroy(gameObject);
+        speed = 0;
+
+        StopAllCoroutines();
+    }
+
+    private void SetHealth()
+    {
+        GameObject[] enemyCount = GameObject.FindGameObjectsWithTag("Enemy");
+
+        healthPoint = enemyCount.Length * AdditionnalHealthPerEnemies;
+        healthRemoveWhenKillIA = healthPoint / enemyCount.Length;
+
+        if (healthPoint <= 0)
+            SetState(VideurState.Die);
+
+    }
+
+    public void ReduceHealth()
+    {
+        healthPoint -= healthRemoveWhenKillIA;
+
+        if (healthPoint <= 0)
+            SetState(VideurState.Die);
     }
 }
