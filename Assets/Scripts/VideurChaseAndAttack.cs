@@ -1,6 +1,6 @@
 using System.Collections;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
+using UnityEngine.UI;
 
 public class VideurChaseAndAttack : MonoBehaviour
 {
@@ -18,11 +18,14 @@ public class VideurChaseAndAttack : MonoBehaviour
     private Coroutine coroutineState = null;
     private SpriteRenderer spriteRenderer;
 
+    [SerializeField] private Image healthBar;
     [SerializeField] private GameObject throwingObject;
     [SerializeField] private Transform throwingTransform;
     [SerializeField] private float delayStartChasing = 0.5f;
     [SerializeField] private float delayBetweenShoot = 0.5f;
     [SerializeField] private float rangeDamage = 0.5f;
+
+    private float maxHealth = 1500;
 
     [SerializeField] private float healthPoint = 1500;
     [SerializeField] private float AdditionnalHealthPerEnemies = 10;
@@ -145,6 +148,10 @@ public class VideurChaseAndAttack : MonoBehaviour
         healthPoint = enemyCount.Length * AdditionnalHealthPerEnemies;
         healthRemoveWhenKillIA = healthPoint / enemyCount.Length;
 
+        maxHealth = healthPoint;
+
+        healthBar.fillAmount = 1;
+
         if (healthPoint <= 0)
             SetState(VideurState.Die);
 
@@ -153,6 +160,8 @@ public class VideurChaseAndAttack : MonoBehaviour
     public void ReduceHealth()
     {
         healthPoint -= healthRemoveWhenKillIA;
+
+        healthBar.fillAmount = healthPoint / maxHealth;
 
         if (healthPoint <= 0)
             SetState(VideurState.Die);
