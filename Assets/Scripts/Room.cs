@@ -118,7 +118,9 @@ public class Room : MonoBehaviour {
 
         if (isStairsRoom && !hasSpawnedBoss)
         {
-            Debug.Log("Entered boss room for the first time");
+            GameManager gm = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
+            gm.InstantiateBoss();
+
             hasSpawnedBoss = true;
         }
     }

@@ -6,7 +6,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject videur;
     [SerializeField] private string layerForProps = "props";
 
-    List<GameObject> props = new List<GameObject>();
+    public List<GameObject> props = new List<GameObject>();
 
     [SerializeField] private Camera _camera;
 
@@ -25,7 +25,6 @@ public class GameManager : MonoBehaviour
                 props.Add(obj);
         }
 
-        InstantiateBoss();
         EnableAllObjectWithSameLayer(false);
     }
 
