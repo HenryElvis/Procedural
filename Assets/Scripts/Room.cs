@@ -21,6 +21,8 @@ public class Room : MonoBehaviour {
 
     public Difficulty diffuculty = Difficulty.EASY;
     public bool isStartRoom = false;
+    public bool isStairsRoom = false;
+    public bool hasSpawnedBoss = false;
 
     // Position of the room in index coordinates. Coordinates {0,0} are the coordinates of the central room. Room {1,0} is on the right side of room {0,0}.
 	public Vector2Int position = Vector2Int.zero;
@@ -113,6 +115,12 @@ public class Room : MonoBehaviour {
         CameraFollow cameraFollow = Camera.main.GetComponent<CameraFollow>();
         Bounds cameraBounds = GetWorldBounds();
         cameraFollow.SetBounds(cameraBounds);
+
+        if (isStairsRoom && !hasSpawnedBoss)
+        {
+            Debug.Log("Entered boss room for the first time");
+            hasSpawnedBoss = true;
+        }
     }
 
     /// <summary>
