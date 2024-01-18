@@ -273,6 +273,7 @@ public class DungeonGeneratorV2 : MonoBehaviour
         node.room = newGo.GetComponent<Room>();
         node.room.position = node.position;
         node.room.isStartRoom = isStart;
+        node.room.isStairsRoom = node.isStairsRoom;
 
         node.room.SetLastRoom(node.previousNode?.room);
     }
