@@ -836,7 +836,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7b92ee6ad3d40d58573e5819cf87dc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  depth: 7
+  depth: 1
   maxBranches: 3
   maxBranchDepth: 5
   roomPrefabs:

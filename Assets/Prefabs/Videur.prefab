@@ -106,7 +106,7 @@ MonoBehaviour:
     type: 3}
   throwingTransform: {fileID: 746940140042265850}
   delayStartChasing: 0.5
-  delayBetweenShoot: 0.5
+  delayBetweenShoot: 2
   rangeDamage: 0.5
   healthPoint: 1000
   AdditionnalHealthPerEnemies: 10
