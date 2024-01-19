@@ -119,6 +119,7 @@ public class Room : MonoBehaviour {
         if (isStairsRoom && !hasSpawnedBoss)
         {
             GameManager gm = GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>();
+            gm.EnableAllObjectWithSameLayer(true);
             gm.InstantiateBoss();
 
             hasSpawnedBoss = true;
