@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -17,15 +18,22 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        GameObject[] objects = FindObjectsOfType<GameObject>();
+        StartCoroutine(IDeleteAll());
 
-        foreach (GameObject obj in objects)
+        IEnumerator IDeleteAll()
         {
-            if (obj != null && obj.layer == LayerMask.NameToLayer(layerForProps))
-                props.Add(obj);
-        }
+            yield return new WaitForSeconds(0.2f);
 
-        EnableAllObjectWithSameLayer(false);
+            GameObject[] objects = FindObjectsOfType<GameObject>();
+
+            foreach (GameObject obj in objects)
+            {
+                if (obj != null && obj.layer == LayerMask.NameToLayer(layerForProps))
+                    props.Add(obj);
+            }
+
+            EnableAllObjectWithSameLayer(false);
+        }
     }
 
     public void EnableAllObjectWithSameLayer(bool value)
