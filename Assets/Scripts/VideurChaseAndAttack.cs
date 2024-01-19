@@ -75,6 +75,8 @@ public class VideurChaseAndAttack : MonoBehaviour
 
         coroutineState = StartCoroutine(IEnterRoom());
 
+        healthBar = GameObject.FindGameObjectWithTag("HealthBar").GetComponent<Image>();
+
         SetHealth();
 
         IEnumerator IEnterRoom()
