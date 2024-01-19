@@ -7,9 +7,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject videur;
     [SerializeField] private string layerForProps = "props";
 
-    public List<GameObject> props = new List<GameObject>();
+    private List<GameObject> props = new List<GameObject>();
 
     [SerializeField] private Camera _camera;
+    [SerializeField] private GameObject canvas;
 
     private void Awake()
     {
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        canvas.SetActive(false);
         StartCoroutine(IDeleteAll());
 
         IEnumerator IDeleteAll()
@@ -44,6 +46,7 @@ public class GameManager : MonoBehaviour
 
     public void InstantiateBoss()
     {
+        canvas.SetActive(true);
         Instantiate(videur, GetCameraCenter(), Quaternion.identity);
     }
 
