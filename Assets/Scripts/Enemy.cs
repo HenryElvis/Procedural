@@ -265,10 +265,10 @@ public class Enemy : MonoBehaviour
         life -= (attack != null ? attack.damages : 1);
         if (life <= 0)
         {
-            if (!videur)
-                videur = GameObject.FindGameObjectWithTag("Boss").GetComponent<VideurChaseAndAttack>();
+            //if (!videur)
+            //    videur = GameObject.FindGameObjectWithTag("Boss").GetComponent<VideurChaseAndAttack>();
 
-            videur.ReduceHealth();
+            //videur.ReduceHealth();
 
             SetState(STATE.DEAD);
         }

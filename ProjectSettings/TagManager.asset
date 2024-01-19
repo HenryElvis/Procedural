@@ -9,6 +9,7 @@ TagManager:
   - Enemy
   - Boss
   - GameManager
+  - HealthBar
   layers:
   - Default
   - TransparentFX
@@ -22,7 +23,7 @@ TagManager:
   - EnemyAttack
   - EnemyBullet
   - Obs
-  - 
+  - Key
   - 
   - 
   - 

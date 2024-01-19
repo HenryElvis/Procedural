@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,9 +7,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject videur;
     [SerializeField] private string layerForProps = "props";
 
-    public List<GameObject> props = new List<GameObject>();
+    private List<GameObject> props = new List<GameObject>();
 
     [SerializeField] private Camera _camera;
+    [SerializeField] private GameObject canvas;
 
     private void Awake()
     {
@@ -17,15 +19,23 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        GameObject[] objects = FindObjectsOfType<GameObject>();
+        canvas.SetActive(false);
+        StartCoroutine(IDeleteAll());
 
-        foreach (GameObject obj in objects)
+        IEnumerator IDeleteAll()
         {
-            if (obj != null && obj.layer == LayerMask.NameToLayer(layerForProps))
-                props.Add(obj);
-        }
+            yield return new WaitForSeconds(0.2f);
 
-        EnableAllObjectWithSameLayer(false);
+            GameObject[] objects = FindObjectsOfType<GameObject>();
+
+            foreach (GameObject obj in objects)
+            {
+                if (obj != null && obj.layer == LayerMask.NameToLayer(layerForProps))
+                    props.Add(obj);
+            }
+
+            EnableAllObjectWithSameLayer(false);
+        }
     }
 
     public void EnableAllObjectWithSameLayer(bool value)
@@ -36,6 +46,7 @@ public class GameManager : MonoBehaviour
 
     public void InstantiateBoss()
     {
+        canvas.SetActive(true);
         Instantiate(videur, GetCameraCenter(), Quaternion.identity);
     }
 
