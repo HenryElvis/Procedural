@@ -334,7 +334,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef68b37496ef62c449621d0c55f8ba31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  life: 3
+  life: 1
   invincibilityDuration: 0
   invincibilityBlinkPeriod: 0.2
   hitLayers:
@@ -342,6 +342,7 @@ MonoBehaviour:
     m_Bits: 256
   knockbackSpeed: 3
   knockbackDuration: 0.5
+  videur: {fileID: 0}
   defaultMovement:
     speedMax: 1
     acceleration: 8
